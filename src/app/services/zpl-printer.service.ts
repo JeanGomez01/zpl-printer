@@ -1,23 +1,7 @@
-import { Injectable } from '@angular/core';
-import type { PrinterCallbacks } from 'ns-bxl-label';
+import { Injectable } from "@angular/core";
+import { startBluetoothPrintFlow, PrinterCallbacks } from "ns-bxl-label";
 
-
-export interface PrintCallbacks extends PrinterCallbacks {
-  
-}
-
-
-let startBluetoothPrintFlow: ((printerAddress: string, zplCommand: string, callbacks?: PrinterCallbacks) => void) | null = null;
-
-try {
-  
-  const packageName = 'ns-bxl-label';
-  const nsBxlLabel = (global as any).require ? (global as any).require(packageName) : require(packageName);
-  startBluetoothPrintFlow = nsBxlLabel.startBluetoothPrintFlow;
-  console.log('startBluetoothPrintFlow loaded from ns-bxl-label');
-} catch (error) {
-  console.error('Failed to load ns-bxl-label:', error);
-}
+export interface PrintCallbacks extends PrinterCallbacks {}
 
 export interface ZplTemplate {
   name: string;
@@ -26,29 +10,26 @@ export interface ZplTemplate {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class ZplPrinterService {
-  
   private readonly zplTemplates: ZplTemplate[] = [
     {
-      name: 'Hola test',
-      code: '^XA^FO50,50^ADN,36,20^FDHola Mundo^FS^XZ',
-      description: 'Etiqueta básica con texto simple'
+      name: "Hola test",
+      code: "^XA^FO50,50^ADN,36,20^FDHola Mundo^FS^XZ",
+      description: "Etiqueta básica con texto simple",
     },
     {
-      name: 'Etiqueta',
-      code: '^XA^FO50,50^ADN,24,12^FDProducto: 12345^FS^FO50,100^ADN,18,10^FDPrecio: $99.99^FS^FO50,150^ADN,14,8^FDFecha: 15/01/2026^FS^XZ',
-      description: 'Etiqueta con información de producto, precio y fecha'
-    }, 
+      name: "Etiqueta",
+      code: "^XA^FO50,50^ADN,24,12^FDProducto: 12345^FS^FO50,100^ADN,18,10^FDPrecio: $99.99^FS^FO50,150^ADN,14,8^FDFecha: 15/01/2026^FS^XZ",
+      description: "Etiqueta con información de producto, precio y fecha",
+    },
   ];
 
-  constructor() { 
-    if (startBluetoothPrintFlow) {
-      console.log('[ZPL Printer]   startBluetoothPrintFlow imported successfully from ns-bxl-label');
-    } else {
-      console.warn('[ZPL Printer]  startBluetoothPrintFlow not available');
-    }
+  constructor() {
+    console.log(
+      "[ZPL Printer] ✅ startBluetoothPrintFlow imported successfully from ns-bxl-label"
+    );
   }
 
   /**
@@ -57,47 +38,42 @@ export class ZplPrinterService {
   getTemplates(): ZplTemplate[] {
     return [...this.zplTemplates];
   }
- 
+
   async printLabel(
     macAddress: string,
     zplCode: string,
     callbacks: PrintCallbacks = {}
   ): Promise<void> {
     return new Promise((resolve, reject) => {
-      try { 
-        if (!startBluetoothPrintFlow) {
-          const error = 'startBluetoothPrintFlow function not available. Make sure ns-bxl-label is installed correctly.';
-          console.error('ZPL Printer', error);
-          if (callbacks.onConnectionFailed) {
-            callbacks.onConnectionFailed(error);
-          }
-          reject(new Error(error));
-          return;
-        }
- 
+      try {
+        console.log("[ZPL Printer] 🚀 Iniciando startBluetoothPrintFlow");
+        console.log("[ZPL Printer] Printer Address:", macAddress);
+        console.log("[ZPL Printer] ZPL Command:", zplCode);
+
         if (callbacks.onConnectionStateChanged) {
-          callbacks.onConnectionStateChanged('Iniciando conexión Bluetooth...');
+          callbacks.onConnectionStateChanged("Iniciando conexión Bluetooth...");
         }
 
         startBluetoothPrintFlow(
-          macAddress,        // printerAddress parameter
-          zplCode,          // zplCommand parameter
-          {                 // PrinterCallbacks object
+          macAddress, // printerAddress parameter
+          zplCode, // zplCommand parameter
+          {
+            // PrinterCallbacks object
             onConnectionStateChanged: (status: string) => {
-              console.log('[ZPL Printer] Estado de conexión:', status);
+              console.log("[ZPL Printer] Estado de conexión:", status);
               if (callbacks.onConnectionStateChanged) {
                 callbacks.onConnectionStateChanged(status);
               }
             },
             onPrintStarted: () => {
-              console.log('[ZPL Printer]   Impresión iniciada');
+              console.log("[ZPL Printer]   Impresión iniciada");
               if (callbacks.onPrintStarted) {
                 callbacks.onPrintStarted();
               }
             },
 
             onPrintSuccess: () => {
-              console.log('[ZPL Printer]  Impresión exitosa');
+              console.log("[ZPL Printer]  Impresión exitosa");
               if (callbacks.onPrintSuccess) {
                 callbacks.onPrintSuccess();
               }
@@ -105,7 +81,7 @@ export class ZplPrinterService {
             },
 
             onPrintError: (error: string) => {
-              console.error('[ZPL Printer]  Error de impresión:', error);
+              console.error("[ZPL Printer]  Error de impresión:", error);
               if (callbacks.onPrintError) {
                 callbacks.onPrintError(error);
               }
@@ -113,7 +89,7 @@ export class ZplPrinterService {
             },
 
             onConnectionFailed: (error: string) => {
-              console.error('[ZPL Printer]  Error de conexión:', error);
+              console.error("[ZPL Printer]  Error de conexión:", error);
               if (callbacks.onConnectionFailed) {
                 callbacks.onConnectionFailed(error);
               }
@@ -121,37 +97,41 @@ export class ZplPrinterService {
             },
 
             onConnectionLost: () => {
-              console.warn('[ZPL Printer]  Conexión perdida');
+              console.warn("[ZPL Printer]  Conexión perdida");
               if (callbacks.onConnectionLost) {
                 callbacks.onConnectionLost();
               }
             },
 
             showPrintingDialog: () => {
-              console.log('[ZPL Printer]   Mostrando diálogo de impresión');
+              console.log("[ZPL Printer]   Mostrando diálogo de impresión");
               if (callbacks.showPrintingDialog) {
                 callbacks.showPrintingDialog();
               }
             },
 
             hidePrintingDialog: () => {
-              console.log('[ZPL Printer]   Ocultando diálogo de impresión');
+              console.log("[ZPL Printer]   Ocultando diálogo de impresión");
               if (callbacks.hidePrintingDialog) {
                 callbacks.hidePrintingDialog();
               }
-            }
+            },
           }
         );
 
-        console.log('[ZPL Printer]   startBluetoothPrintFlow llamado correctamente');
-
+        console.log(
+          "[ZPL Printer]   startBluetoothPrintFlow llamado correctamente"
+        );
       } catch (error) {
-        console.error('[ZPL Printer]  Error ejecutando startBluetoothPrintFlow:', error);
+        console.error(
+          "[ZPL Printer]  Error ejecutando startBluetoothPrintFlow:",
+          error
+        );
         if (callbacks.onPrintError) {
           callbacks.onPrintError(error.message || error.toString());
         }
         if (callbacks.onConnectionStateChanged) {
-          callbacks.onConnectionStateChanged('Error');
+          callbacks.onConnectionStateChanged("Error");
         }
         reject(error);
       }
@@ -171,18 +151,16 @@ export class ZplPrinterService {
    */
   isValidZplCode(zplCode: string): boolean {
     const trimmed = zplCode.trim();
-    return trimmed.length > 0 && 
-           trimmed.includes('^XA') && 
-           trimmed.includes('^XZ');
+    return (
+      trimmed.length > 0 && trimmed.includes("^XA") && trimmed.includes("^XZ")
+    );
   }
 
   /**
    * Formats MAC address to standard format with colons
    */
   formatMacAddress(macAddress: string): string {
-    return macAddress.trim()
-      .replace(/[-]/g, ':')
-      .toUpperCase();
+    return macAddress.trim().replace(/[-]/g, ":").toUpperCase();
   }
 
   /**
@@ -196,18 +174,18 @@ export class ZplPrinterService {
    * Check if ns-bxl-label package is available
    */
   isNsBxlLabelAvailable(): boolean {
-    return typeof startBluetoothPrintFlow === 'function';
+    return typeof startBluetoothPrintFlow === "function";
   }
 
   /**
    * Get package status information
    */
-  getPackageStatus(): { available: boolean, message: string } {
+  getPackageStatus(): { available: boolean; message: string } {
     const available = this.isNsBxlLabelAvailable();
-    const message = available 
-      ? ' plugin importado'
-      : ' no importado';
-    
+    const message = available
+      ? "✅ ns-bxl-label plugin importado correctamente"
+      : "❌ ns-bxl-label no importado";
+
     return { available, message };
   }
 }
