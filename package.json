@@ -14,7 +14,7 @@
     "@angular/router": "~20.2.0",
     "@nativescript/angular": "^20.0.0",
     "@nativescript/core": "~9.0.0",
-    "ns-bxl-label": "1.0.5",
+    "ns-bxl-label": "^1.0.5",
     "rxjs": "~7.8.0",
     "zone.js": "~0.15.0"
   },

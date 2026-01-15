@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NativeScriptFormsModule } from '@nativescript/angular';
+import { NativeScriptCommonModule } from '@nativescript/angular';
 import { ZplPrinterService, ZplTemplate, PrintCallbacks } from '../services/zpl-printer.service';
 
 export interface ActivityLog {
@@ -12,9 +14,10 @@ export interface ActivityLog {
 @Component({
   selector: 'ns-printer',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NativeScriptFormsModule, NativeScriptCommonModule],
   templateUrl: './printer.component.html',
-  styleUrls: ['./printer.component.css']
+  styleUrls: ['./printer.component.css'],
+  schemas: [NO_ERRORS_SCHEMA]
 })
 export class PrinterComponent implements OnInit {
   
@@ -36,6 +39,18 @@ export class PrinterComponent implements OnInit {
   ngOnInit(): void {
     this.templates = this.zplPrinterService.getTemplates();
     this.addLog('info', 'Aplicación iniciada - Lista para conectar con impresora');
+    this.checkPackageStatus();
+  }
+
+  checkPackageStatus(): void {
+    const status = this.zplPrinterService.getPackageStatus();
+    if (status.available) {
+      this.addLog('success', status.message);
+      this.addLog('info', 'Función startBluetoothPrintFlow lista para usar');
+    } else {
+      this.addLog('error', status.message);
+      this.addLog('warning', 'Verifique la instalación del paquete ns-bxl-label');
+    }
   }
 
   selectTemplate(template: ZplTemplate): void {
