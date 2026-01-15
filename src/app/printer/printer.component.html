@@ -1,0 +1,90 @@
+<ActionBar title="ZPL Printer" class="action-bar">
+</ActionBar>
+
+<ScrollView>
+    <StackLayout class="page">
+        <!-- Header -->
+        <Label text="Impresora de Etiquetas ZPL" class="page-title text-center" textWrap="true"></Label>
+        
+        <!-- Connection Status -->
+        <StackLayout class="status-card">
+            <Label text="Estado de Conexión" class="card-title"></Label>
+            <StackLayout orientation="horizontal" class="status-container">
+                <Label [text]="connectionStatus" [class]="getStatusClass()" class="status-text"></Label>
+                <ActivityIndicator [busy]="isConnecting || isPrinting" class="activity-indicator"></ActivityIndicator>
+            </StackLayout>
+        </StackLayout>
+
+        <!-- MAC Address Input -->
+        <StackLayout class="input-card">
+            <Label text="Configuración de Impresora" class="card-title"></Label>
+            <StackLayout class="input-group">
+                <Label text="Dirección MAC de la Impresora:" class="input-label"></Label>
+                <TextField 
+                    [(ngModel)]="macAddress" 
+                    hint="00:11:22:33:44:55"
+                    [isEnabled]="!isConnecting && !isPrinting"
+                    class="input-field">
+                </TextField>
+            </StackLayout>
+        </StackLayout>
+
+        <!-- Templates -->
+        <StackLayout class="templates-card">
+            <Label text="Plantillas ZPL" class="card-title"></Label>
+            <WrapLayout class="template-buttons">
+                <Button 
+                    *ngFor="let template of templates" 
+                    [text]="template.name"
+                    (tap)="selectTemplate(template)"
+                    [isEnabled]="!isConnecting && !isPrinting"
+                    class="template-btn">
+                </Button>
+            </WrapLayout>
+        </StackLayout>
+
+        <!-- ZPL Code Input -->
+        <StackLayout class="input-card">
+            <Label text="Código ZPL" class="card-title"></Label>
+            <StackLayout class="input-group">
+                <Label text="Comando ZPL:" class="input-label"></Label>
+                <TextView 
+                    [(ngModel)]="zplCode" 
+                    hint="^XA^FO50,50^ADN,36,20^FDHola Mundo^FS^XZ"
+                    [isEnabled]="!isConnecting && !isPrinting"
+                    class="textarea-field"
+                    rows="4">
+                </TextView>
+            </StackLayout>
+            
+            <!-- Print Button -->
+            <Button 
+                [text]="getPrintButtonText()" 
+                (tap)="printLabel()"
+                [isEnabled]="!isConnecting && !isPrinting && canPrint()"
+                class="print-btn">
+            </Button>
+        </StackLayout>
+
+        <!-- Activity Log -->
+        <StackLayout class="log-card">
+            <StackLayout orientation="horizontal" class="log-header">
+                <Label text="Registro de Actividad" class="card-title flex-grow"></Label>
+                <Button text="Limpiar" (tap)="clearLogs()" class="clear-btn"></Button>
+            </StackLayout>
+            
+            <StackLayout class="log-container">
+                <Label 
+                    *ngIf="logs.length === 0" 
+                    text="No hay registros disponibles" 
+                    class="log-empty">
+                </Label>
+                
+                <StackLayout *ngFor="let log of logs" class="log-item" [class]="'log-' + log.type">
+                    <Label [text]="log.timestamp" class="log-time"></Label>
+                    <Label [text]="log.message" class="log-message" textWrap="true"></Label>
+                </StackLayout>
+            </StackLayout>
+        </StackLayout>
+    </StackLayout>
+</ScrollView>
